@@ -2,14 +2,23 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Tetriyo - Game</title>
+    <title>Tetriyo - Page</title>
     <style>
         body { margin: 0; background: #111; color: white; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
         
-        #play-now-btn { 
+        /* Container for the button and text at 0,0 */
+        #top-bar {
             position: absolute; top: 0; left: 0; 
+            display: flex; align-items: center; z-index: 100;
+        }
+
+        #play-now-btn { 
             padding: 15px 30px; background: #2ecc71; border: none; 
-            color: white; font-weight: bold; cursor: pointer; z-index: 100;
+            color: white; font-weight: bold; cursor: pointer;
+        }
+
+        #copyright-text {
+            margin-left: 1550px; font-size: 0.9em; color: #888;
         }
 
         #game-container { display: none; text-align: center; }
@@ -23,17 +32,20 @@
 </head>
 <body>
 
-<button id="play-now-btn" onclick="startGame()">PLAY SANDBOX</button>
+<div id="top-bar">
+    <button id="play-now-btn" onclick="startGame()">PLAY SANDBOX</button>
+    <span id="copyright-text">Copyright (C) 2026 Prewood</span>
+</div>
 
 <div id="game-container">
     <div id="ui">Score: <span id="score">0</span></div>
     <canvas id="game" width="240" height="400"></canvas>
-    <div style="margin-top: 10px; color: #666; font-size: 0.8em;">Left Click: Place (+10 pts) | Right Click: Rotate</div>
+    <div style="margin-top: 10px; color: #666; font-size: 0.8em;">Left Click: Place | Right Click: Rotate</div>
 </div>
 
 <div id="overlay">
     <h1>BOARD FULL</h1>
-    <button onclick="resetGame()">CLEAR BOARD</button>
+    <button onclick="resetGame()">Clear Board</button>
 </div>
 
 <script>
@@ -49,11 +61,11 @@ ctx.scale(BLOCK_SIZE, BLOCK_SIZE);
 
 let gameRunning = false;
 const colors = [null, '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'];
-const arena = createMatrix(COLS, ROWS);
+let arena = createMatrix(COLS, ROWS);
 const player = { pos: {x: 0, y: 0}, matrix: null, score: 0 };
 
 function startGame() {
-    document.getElementById('play-now-btn').style.display = 'none';
+    document.getElementById('top-bar').style.display = 'none';
     document.getElementById('game-container').style.display = 'block';
     gameRunning = true;
     playerReset();
@@ -61,12 +73,15 @@ function startGame() {
 }
 
 function resetGame() {
-    arena.forEach(row => row.fill(0));
+    for (let y = 0; y < arena.length; y++) {
+        arena[y].fill(0);
+    }
     player.score = 0;
-    scoreElement.innerText = 0;
+    scoreElement.innerText = "0";
     document.getElementById('overlay').style.display = 'none';
     gameRunning = true;
     playerReset();
+    update(); 
 }
 
 function createMatrix(w, h) {
@@ -153,7 +168,7 @@ function arenaSweep() {
         const row = arena.splice(y, 1)[0].fill(0);
         arena.unshift(row);
         ++y;
-        player.score += rowCount * 100; // Bonus for clearing lines
+        player.score += rowCount * 100;
         rowCount *= 2;
     }
     scoreElement.innerText = player.score;
@@ -190,11 +205,8 @@ canvas.addEventListener('mousedown', event => {
     if (event.button === 0) { 
         if (canPlace()) {
             merge(arena, player);
-            
-            // INCREASE SCORE ON PLACEMENT
             player.score += 10;
             scoreElement.innerText = player.score;
-            
             arenaSweep();
             playerReset();
         }
@@ -209,7 +221,7 @@ function draw() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawMatrix(arena, {x: 0, y: 0});
-    if (player.matrix) {
+    if (player.matrix && gameRunning) {
         const valid = canPlace();
         drawMatrix(player.matrix, player.pos, valid ? 1 : 0.3);
     }
