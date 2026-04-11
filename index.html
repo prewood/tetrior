@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Tetriyo</title>
+    <title>Tetris Sandbox</title>
     <style>
         body { margin: 0; background: #111; color: white; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
         
@@ -13,7 +13,6 @@
         }
 
         #game-container { display: none; text-align: center; }
-        /* Cursor set to default and made visible */
         canvas { background: #000; border: 4px solid #333; cursor: default; }
         
         #overlay { 
@@ -29,7 +28,7 @@
 <div id="game-container">
     <div id="ui">Score: <span id="score">0</span></div>
     <canvas id="game" width="240" height="400"></canvas>
-    <div style="margin-top: 10px; color: #666; font-size: 0.8em;">Left Click: Place | Right Click: Rotate</div>
+    <div style="margin-top: 10px; color: #666; font-size: 0.8em;">Left Click: Place (+10 pts) | Right Click: Rotate</div>
 </div>
 
 <div id="overlay">
@@ -154,7 +153,7 @@ function arenaSweep() {
         const row = arena.splice(y, 1)[0].fill(0);
         arena.unshift(row);
         ++y;
-        player.score += rowCount * 10;
+        player.score += rowCount * 100; // Bonus for clearing lines
         rowCount *= 2;
     }
     scoreElement.innerText = player.score;
@@ -176,15 +175,12 @@ function playerRotate(dir) {
     }
 }
 
-// Mouse movement with perfect centering for the long piece
 canvas.addEventListener('mousemove', event => {
     if (!gameRunning) return;
     const rect = canvas.getBoundingClientRect();
-    
     const mouseX = (event.clientX - rect.left) / (rect.width / COLS);
     const mouseY = (event.clientY - rect.top) / (rect.height / ROWS);
     
-    // We subtract half the matrix size to keep the mouse in the middle
     player.pos.x = Math.round(mouseX - player.matrix[0].length / 2);
     player.pos.y = Math.round(mouseY - player.matrix.length / 2);
 });
@@ -194,6 +190,11 @@ canvas.addEventListener('mousedown', event => {
     if (event.button === 0) { 
         if (canPlace()) {
             merge(arena, player);
+            
+            // INCREASE SCORE ON PLACEMENT
+            player.score += 10;
+            scoreElement.innerText = player.score;
+            
             arenaSweep();
             playerReset();
         }
@@ -207,9 +208,7 @@ canvas.addEventListener('contextmenu', e => e.preventDefault());
 function draw() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
     drawMatrix(arena, {x: 0, y: 0});
-    
     if (player.matrix) {
         const valid = canPlace();
         drawMatrix(player.matrix, player.pos, valid ? 1 : 0.3);
