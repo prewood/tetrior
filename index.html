@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Tetrior - Git Pages</title>
+    <title>Home</title>
     <style>
         body { margin: 0; background: #111; color: white; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
         
@@ -65,6 +65,7 @@ let arena = createMatrix(COLS, ROWS);
 const player = { pos: {x: 0, y: 0}, matrix: null, score: 0 };
 
 function startGame() {
+    document.title = "Game Page";
     document.getElementById('top-bar').style.display = 'none';
     document.getElementById('game-container').style.display = 'block';
     gameRunning = true;
